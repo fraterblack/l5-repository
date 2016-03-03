@@ -273,6 +273,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
             $results = $this->model->all($columns);
         }
 
+        $this->clearScope();
         $this->resetModel();
 
         return $this->parserResult($results);
@@ -292,6 +293,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
 
         $results = $this->model->first($columns);
 
+        $this->clearScope();
         $this->resetModel();
 
         return $this->parserResult($results);
@@ -310,6 +312,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $this->applyScope();
         $limit = is_null($limit) ? config('repository.pagination.limit', 15) : $limit;
         $results = $this->model->{$method}($limit, $columns);
+        $this->clearScope();
         $this->resetModel();
         return $this->parserResult($results);
     }
@@ -337,6 +340,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $this->applyCriteria();
         $this->applyScope();
         $model = $this->model->findOrFail($id, $columns);
+        $this->clearScope();
         $this->resetModel();
         return $this->parserResult($model);
     }
@@ -354,6 +358,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $this->applyCriteria();
         $this->applyScope();
         $model = $this->model->where($field,'=',$value)->get($columns);
+        $this->clearScope();
         $this->resetModel();
         return $this->parserResult($model);
     }
@@ -380,6 +385,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         }
 
         $model = $this->model->get($columns);
+        $this->clearScope();
         $this->resetModel();
 
         return $this->parserResult($model);
@@ -467,6 +473,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $model->save();
 
         $this->skipPresenter($_skipPresenter);
+        $this->clearScope();
         $this->resetModel();
 
         event(new RepositoryEntityUpdated($this, $model));
@@ -499,6 +506,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $model = $this->model->updateOrCreate(['id' => $id], $attributes);
 
         $this->skipPresenter($_skipPresenter);
+        $this->clearScope();
         $this->resetModel();
 
         event(new RepositoryEntityUpdated($this, $model));
@@ -523,6 +531,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         $originalModel = clone $model;
 
         $this->skipPresenter($_skipPresenter);
+        $this->clearScope();
         $this->resetModel();
 
         $deleted = $model->delete();
@@ -652,6 +661,18 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
         }
 
         return  $this;
+    }
+
+    /**
+     * Clears any currently scope
+     *
+     * @return $this
+     */
+    protected function clearScope()
+    {
+        $this->scopeQuery = null;
+
+        return $this;
     }
 
     /**
